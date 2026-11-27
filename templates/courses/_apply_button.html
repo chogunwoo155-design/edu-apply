@@ -1,0 +1,5 @@
+{% if availability.open %}
+<a class="btn btn--primary btn--lg{% if block %} btn--block{% endif %}" href="{% url 'applications:apply' course.slug %}">신청하기</a>
+{% else %}
+<span class="btn btn--disabled btn--lg{% if block %} btn--block{% endif %}" aria-disabled="true">{{ availability.reason }}</span>
+{% endif %}

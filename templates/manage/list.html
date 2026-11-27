@@ -1,48 +1,109 @@
-{% extends "base.html" %}
+{% extends "manage/base.html" %}
+{% load humanize_ko %}
 {% block title %}신청 관리 · 히어로스쿨{% endblock %}
-{% block topbar_right %}<a class="topbar__link" href="{% url 'admin:index' %}">Django admin</a>{% endblock %}
-{% block content %}
-<section class="page page--wide">
-  <header class="page-head">
-    <h1 class="h1">신청 관리</h1>
-  </header>
-
-  <nav class="tabs" aria-label="상태 필터">
-    <a class="tabs__item {% if not current_status %}is-active{% endif %}" href="?">전체</a>
-    {% for value, label in statuses %}
-    <a class="tabs__item {% if current_status == value %}is-active{% endif %}" href="?status={{ value }}">{{ label }}</a>
-    {% endfor %}
-  </nav>
-
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>신청일</th><th>이름</th><th>교육</th><th>이메일</th><th>연락 가능일</th><th>상태</th></tr>
-      </thead>
-      <tbody>
-        {% for a in applications %}
-        <tr>
-          <td>{{ a.created_at|date:"m.d H:i" }}</td>
-          <td>{{ a.name }}</td>
-          <td>{{ a.course.title }}</td>
-          <td>{{ a.email }}</td>
-          <td>{{ a.contact_date|date:"m.d (D)" }}</td>
-          <td>
-            <form method="post" action="{% url 'manage:change_status' a.pk %}" class="inline-form">
-              {% csrf_token %}
-              <select name="status" onchange="this.form.submit()">
-                {% for value, label in statuses %}
-                <option value="{{ value }}" {% if a.status == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
-            </form>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="empty">신청이 없어요.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+{% block manage_content %}
+<header class="manage-head">
+  <h1 class="h1">신청 관리</h1>
+  <div class="manage-actions">
+    <a class="btn btn--secondary btn--sm" href="{% url 'manage:export_csv' %}?{{ query_without_page }}"><span>CSV<span class="label-long"> 내려받기</span></span></a>
+    <form method="post" action="{% url 'manage:export_sheet' %}">
+      {% csrf_token %}
+      <button class="btn btn--secondary btn--sm" type="submit" {% if not sheets_ready %}title="GOOGLE_SHEET_ID와 서비스 계정 키를 설정하면 쓸 수 있어요"{% endif %}><span>구글 시트<span class="label-long">로 내보내기</span></span></button>
+    </form>
+    <a class="btn btn--ghost btn--sm" href="{% url 'manage:jobs' %}">배치 이력{% if last_run and last_run.status == "failed" %} <span class="badge badge--danger">실패</span>{% endif %}</a>
   </div>
-</section>
+</header>
+
+{% if messages %}
+<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>
+{% endif %}
+
+<nav class="summary-cards" aria-label="오늘 할 일">
+  <a class="summary-card" href="?when=today&sort=contact"><span>오늘 연락</span><strong>{{ todo.today }}</strong></a>
+  <a class="summary-card{% if todo.overdue %} is-alert{% endif %}" href="?when=overdue&sort=contact"><span>연락일 지남</span><strong>{{ todo.overdue }}</strong></a>
+  <a class="summary-card" href="?sort=new"><span>오늘 들어온 신청</span><strong>{{ todo.new_today }}</strong></a>
+</nav>
+
+<form class="toolbar" method="get" role="search">
+  {% if filters.status %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+  {% if filters.when %}<input type="hidden" name="when" value="{{ filters.when }}">{% endif %}
+  <label class="sr-only" for="q">검색</label>
+  <input class="input toolbar__search" id="q" name="q" type="search" value="{{ filters.q|default:'' }}" placeholder="이름 · 이메일 · 주소 · 신청번호">
+  <label class="sr-only" for="course">교육</label>
+  <select class="input" id="course" name="course" onchange="this.form.submit()">
+    <option value="">모든 교육</option>
+    {% for c in courses %}<option value="{{ c.slug }}" {% if filters.course == c.slug %}selected{% endif %}>{{ c.title }}</option>{% endfor %}
+  </select>
+  <label class="sr-only" for="sort">정렬</label>
+  <select class="input" id="sort" name="sort" onchange="this.form.submit()">
+    <option value="new" {% if filters.sort != "contact" %}selected{% endif %}>최근 신청 순</option>
+    <option value="contact" {% if filters.sort == "contact" %}selected{% endif %}>연락일 빠른 순</option>
+  </select>
+</form>
+
+<nav class="tabs" aria-label="상태">
+  <a class="tabs__item" href="?{{ query_without_status }}" {% if not filters.status %}aria-current="page"{% endif %}>전체 <em>{{ counts.total }}</em></a>
+  {% for value, label in statuses %}
+  <a class="tabs__item" href="?{{ query_without_status }}{% if query_without_status %}&{% endif %}status={{ value }}" {% if filters.status == value %}aria-current="page"{% endif %}>{{ label }} <em>{% if value == "received" %}{{ counts.received }}{% elif value == "reviewing" %}{{ counts.reviewing }}{% else %}{{ counts.done }}{% endif %}</em></a>
+  {% endfor %}
+  {% if filters.when %}<a class="tabs__item" href="?" aria-current="page">{{ when_labels|get_item:filters.when }} ✕</a>{% endif %}
+</nav>
+
+{% csrf_token %}
+<div class="table-wrap">
+  <table class="table">
+    <caption class="sr-only">신청 목록 {{ page.paginator.count }}건. 줄을 누르면 상세 정보가 열려요.</caption>
+    <thead>
+      <tr><th scope="col">이름 · 교육</th><th scope="col">연락 가능일</th><th scope="col">이메일</th><th scope="col">신청</th><th scope="col">상태</th></tr>
+    </thead>
+    <tbody>
+      {% for a in page %}
+      <tr data-open-detail="{{ a.pk }}">
+        <td><span class="name">{{ a.name }}</span><span class="sub">{{ a.course.title }}</span></td>
+        <td>{{ a.contact_date|date:"n/j" }} ({{ a.contact_date|kday }}) <span class="dday {% if a.status != 'done' %}{% if a.contact_date|contact_dday == '오늘' %}dday--today{% elif '지남' in a.contact_date|contact_dday %}dday--over{% endif %}{% endif %}">{% if a.status != "done" %}{{ a.contact_date|contact_dday }}{% endif %}</span><span class="sub">{{ a.get_contact_time_display }}</span></td>
+        <td>{{ a.email }}</td>
+        <td><span title="{{ a.created_at|date:'Y-m-d H:i' }}">{{ a.created_at|date:"n/j H:i" }}</span><span class="sub">{{ a.reference }}</span></td>
+        <td>{% include "manage/_status_select.html" with prefix="t" %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty">조건에 맞는 신청이 없어요.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<ul class="card-list">
+  {% for a in page %}
+  <li class="app-card">
+    <div class="app-card__top">
+      <button type="button" data-open-detail="{{ a.pk }}">
+        <span class="app-card__name">{{ a.name }}</span>
+        <span class="app-card__meta">{{ a.course.title }}</span>
+      </button>
+      {% include "manage/_status_select.html" with prefix="c" %}
+    </div>
+    <span class="app-card__meta">연락 {{ a.contact_date|date:"n/j" }} ({{ a.contact_date|kday }}) {% if a.status != "done" %}<span class="dday {% if a.contact_date|contact_dday == '오늘' %}dday--today{% elif '지남' in a.contact_date|contact_dday %}dday--over{% endif %}">{{ a.contact_date|contact_dday }}</span>{% endif %} · {{ a.get_contact_time_display }}</span>
+  </li>
+  {% empty %}
+  <li class="empty">조건에 맞는 신청이 없어요.</li>
+  {% endfor %}
+</ul>
+
+{% if page.paginator.num_pages > 1 %}
+<nav class="pager" aria-label="페이지">
+  {% if page.has_previous %}<a class="btn btn--secondary btn--sm" href="?{{ query_without_page }}&page={{ page.previous_page_number }}">이전</a>{% endif %}
+  <span>{{ page.number }} / {{ page.paginator.num_pages }}</span>
+  {% if page.has_next %}<a class="btn btn--secondary btn--sm" href="?{{ query_without_page }}&page={{ page.next_page_number }}">다음</a>{% endif %}
+</nav>
+{% endif %}
+
+<dialog class="sheet sheet--side" id="detail-sheet" aria-labelledby="detail-title">
+  <div class="sheet__head">
+    <h2 id="detail-title">신청 상세</h2>
+    <button class="sheet__close" type="button" data-close-sheet aria-label="닫기">×</button>
+  </div>
+  <div class="sheet__body" data-detail-body>
+    <p class="muted">불러오는 중…</p>
+  </div>
+</dialog>
 {% endblock %}

@@ -1,0 +1,4 @@
+<label class="sr-only" for="st-{{ prefix }}-{{ a.pk }}">{{ a.name }} 상태</label>
+<select class="status-select" id="st-{{ prefix }}-{{ a.pk }}" data-status-for="{{ a.pk }}" data-status="{{ a.status }}" data-name="{{ a.name }}">
+  {% for value, label in statuses %}<option value="{{ value }}" {% if a.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+</select>

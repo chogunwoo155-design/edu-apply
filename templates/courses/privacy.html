@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}개인정보 처리방침 · 히어로스쿨{% endblock %}
+{% block body_class %}narrow-page{% endblock %}
+{% block content %}
+<section class="page page--narrow">
+  <header class="page-head"><h1 class="h1">개인정보 처리방침</h1></header>
+  <p class="body">과제용 데모의 처리방침 예시예요. 실제 운영 전에는 법무 검토를 거쳐 바꿔야 해요.</p>
+  <div class="sheet__body" style="padding:16px 0;max-height:none">{% include "courses/_privacy_table.html" %}</div>
+</section>
+{% endblock %}

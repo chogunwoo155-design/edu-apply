@@ -2,23 +2,26 @@
 {% load static humanize_ko %}
 {% block title %}교육 프로그램 · 히어로스쿨{% endblock %}
 {% block content %}
-<section class="page page--narrow">
-  <header class="page-head">
-    <p class="eyebrow">모집 중인 교육</p>
-    <h1 class="h1">스스로 생각하고<br>행동하는 경험을 만나요</h1>
+<section class="page page--wide">
+  <header class="page-head home-hero">
+    <p class="eyebrow">지금 신청 받는 교육 {{ open_count }}개</p>
+    <h1 class="h1">중·고등학생을 위한<br>무료·실습형 교육을 골라 보세요</h1>
   </header>
 
-  <ul class="course-list">
-    {% for course in courses %}
+  <ul class="course-grid">
+    {% for course, availability in items %}
     <li>
-      <a class="course-card" href="{{ course.get_absolute_url }}">
-        <img class="course-card__cover" src="{% static course.cover_path %}" alt="" width="120" height="120">
+      <a class="course-card{% if not availability.open %} is-closed{% endif %}" href="{{ course.get_absolute_url }}">
+        <img class="course-card__cover cover cover--{{ course.cover }}" src="{% static course.cover_path %}" alt="" width="480" height="480">
         <div class="course-card__body">
-          <span class="chip">{{ course.get_category_display }}</span>
+          <div class="course-card__tags">
+            <span class="chip">{{ course.get_category_display }}</span>
+            {% if not availability.open %}<span class="badge badge--muted">{{ availability.reason|cut:"이에요."|cut:"어요." }}</span>{% endif %}
+          </div>
           <strong class="course-card__title">{{ course.title }}</strong>
-          <span class="course-card__meta">{{ course.target }} · {{ course.schedule }}</span>
+          <span class="course-card__meta">{{ course.target }} · {{ course.fee|won }}{% if course.apply_deadline and availability.open %} · {{ course.apply_deadline|date:"n/j" }} 마감{% endif %}</span>
         </div>
-        {% if not course.is_open %}<span class="badge badge--muted">마감</span>{% endif %}
+        <svg class="course-card__chev" width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
     </li>
     {% empty %}

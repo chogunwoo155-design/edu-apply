@@ -1,0 +1,31 @@
+{% extends "manage/base.html" %}
+{% load humanize_ko %}
+{% block title %}배치 실행 이력 · 히어로스쿨{% endblock %}
+{% block manage_content %}
+<header class="manage-head">
+  <div>
+    <h1 class="h1">배치 실행 이력</h1>
+    <p class="body" style="margin-top:6px">매일 08:00(KST) <span class="code">python manage.py run_daily_jobs</span>가 돌아요. 같은 날 다시 돌려도 메일은 한 번만 가요.</p>
+  </div>
+</header>
+<div class="table-wrap" style="display:block">
+  <table class="table">
+    <caption class="sr-only">최근 배치 실행 100건</caption>
+    <thead><tr><th scope="col">시작</th><th scope="col">작업</th><th scope="col">기준일</th><th scope="col">결과</th><th scope="col">처리</th><th scope="col">걸린 시간</th></tr></thead>
+    <tbody>
+      {% for r in runs %}
+      <tr style="cursor:default">
+        <td>{{ r.started_at|date:"n/j H:i:s" }}<span class="sub">{{ r.get_trigger_display }}{% if r.dry_run %} · 시험 실행{% endif %}</span></td>
+        <td class="code">{{ r.job }}</td>
+        <td>{{ r.target_date|date:"n/j" }} ({{ r.target_date|kday }})</td>
+        <td>{% if r.status == "success" %}<span class="job-ok">성공</span>{% elif r.status == "failed" %}<span class="job-fail">실패</span>{% else %}{{ r.get_status_display }}{% endif %}</td>
+        <td class="code">{% for k, v in r.stats.items %}{{ k }}={{ v }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if r.error %}<span class="sub" style="color:var(--danger-text)">{{ r.error|truncatechars:120 }}</span>{% endif %}</td>
+        <td>{% if r.duration_seconds is not None %}{{ r.duration_seconds }}초{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty">아직 실행 기록이 없어요.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

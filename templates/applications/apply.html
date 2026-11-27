@@ -1,59 +1,152 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize_ko %}
 {% block title %}{{ course.title }} 신청 · 히어로스쿨{% endblock %}
-{% block body_class %}has-bottom-cta{% endblock %}
+{% block body_class %}has-bottom-cta narrow-page{% endblock %}
 {% block content %}
 <section class="page page--narrow">
-  <a class="back" href="{{ course.get_absolute_url }}">← 교육 소개</a>
+  <a class="back" href="{{ course.get_absolute_url }}"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M13 4l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>교육 소개</a>
 
-  <div id="apply-form-area">
-    <header class="page-head">
-      <p class="eyebrow">{{ course.title }}</p>
-      <h1 class="h1">신청서를 작성해 주세요</h1>
-    </header>
+  <header class="page-head">
+    <p class="eyebrow">{{ course.title }}</p>
+    <h1 class="h1" id="apply-title">{% if availability.open %}신청서를 작성해 주세요{% else %}지금은 신청할 수 없어요{% endif %}</h1>
+  </header>
 
-    {% if course.is_open %}
-    <form id="apply-form" class="form" novalidate data-course="{{ course.slug }}" data-endpoint="{% url 'application-list' %}">
-      {% csrf_token %}
+  {% if not availability.open %}
+  <p class="body">{{ availability.reason }}</p>
+  <div style="margin-top:24px"><a class="btn btn--secondary btn--lg" href="{% url 'courses:home' %}">다른 교육 보기</a></div>
+  {% else %}
+  <div class="apply-progress" aria-hidden="true">
+    <div class="apply-progress__bar"><span data-progress></span></div>
+    <span data-progress-text>1 / 4</span>
+  </div>
+
+  <form id="apply-form" class="form" novalidate
+        data-course="{{ course.slug }}"
+        data-endpoint="{% url 'application-list' %}"
+        data-draft-key="apply-draft:{{ course.slug }}"
+        aria-labelledby="apply-title">
+    {% csrf_token %}
+
+    <!-- 1. 학생 이름 -->
+    <div class="step is-revealed" data-step="1">
       <div class="field">
-        <label for="f-name">이름</label>
-        <input id="f-name" name="name" autocomplete="name" required maxlength="30" placeholder="홍길동">
-        <p class="field__error" data-for="name"></p>
+        <label for="f-name">학생 이름</label>
+        <input class="input" id="f-name" name="name" autocomplete="name" required maxlength="30" minlength="2"
+               enterkeyhint="next" placeholder="예: 김하늘" aria-describedby="err-name">
+        <p class="field__error" id="err-name" data-error-for="name"></p>
       </div>
+    </div>
+
+    <!-- 2. 이메일 -->
+    <div class="step" data-step="2">
       <div class="field">
-        <label for="f-email">이메일</label>
-        <input id="f-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="name@example.com">
-        <p class="field__error" data-for="email"></p>
+        <label for="f-email">연락받을 이메일</label>
+        <p class="step__hint" id="hint-email">보호자 이메일도 괜찮아요. 접수 안내를 이 주소로 보내요.</p>
+        <input class="input" id="f-email" name="email" type="email" inputmode="email" autocomplete="email" required
+               autocapitalize="off" spellcheck="false" enterkeyhint="next" placeholder="name@example.com"
+               aria-describedby="hint-email err-email">
+        <p class="field__suggest" data-email-suggest hidden></p>
+        <p class="field__error" id="err-email" data-error-for="email"></p>
       </div>
+    </div>
+
+    <!-- 3. 주소 -->
+    <div class="step" data-step="3">
       <div class="field">
         <label for="f-address">주소</label>
-        <input id="f-address" name="address" autocomplete="street-address" required maxlength="200" placeholder="도로명 주소">
-        <input id="f-address-detail" name="address_detail" maxlength="100" placeholder="상세 주소 (선택)" aria-label="상세 주소">
-        <p class="field__error" data-for="address"></p>
+        <div class="input-row">
+          <input class="input" id="f-address" name="address" autocomplete="address-line1" required maxlength="200"
+                 enterkeyhint="next" placeholder="도로명 또는 지번 주소" aria-describedby="err-address">
+          <button type="button" class="btn btn--secondary btn--lg" data-open-postcode>주소 찾기</button>
+        </div>
+        <p class="field__error" id="err-address" data-error-for="address"></p>
+        <input class="input" id="f-address-detail" name="address_detail" autocomplete="address-line2" maxlength="100"
+               enterkeyhint="next" placeholder="상세 주소 (동·호수, 선택)" aria-label="상세 주소">
+        <input type="hidden" name="postcode" id="f-postcode">
+        <p class="field__error" data-error-for="postcode"></p>
       </div>
-      <div class="field">
-        <label for="f-contact-date">연락 가능 날짜</label>
-        <input id="f-contact-date" name="contact_date" type="date" required>
-        <p class="field__error" data-for="contact_date"></p>
-      </div>
-      <p class="form__error" role="alert" hidden></p>
-      <div class="bottom-cta">
-        <button class="btn btn--primary btn--block btn--lg" type="submit">신청하기</button>
-      </div>
-    </form>
-    {% else %}
-    <p class="empty">신청이 마감된 교육입니다.</p>
-    {% endif %}
-  </div>
-
-  <div id="apply-done" class="done" hidden aria-live="polite">
-    <div class="done__icon" aria-hidden="true">
-      <svg viewBox="0 0 48 48" width="56" height="56"><circle cx="24" cy="24" r="24" fill="var(--primary)"/><path d="M14 25l7 7 13-15" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <h1 class="h1">신청이 접수됐어요</h1>
-    <p class="lead"><span data-done="date"></span>에 담당자가 연락드릴게요.<br>접수 안내 메일을 <span data-done="email"></span>(으)로 보냈어요.</p>
-    <a class="btn btn--secondary btn--lg" href="{% url 'courses:home' %}">다른 교육 보기</a>
-  </div>
+
+    <!-- 4. 연락 가능 날짜 · 시간대 -->
+    <div class="step" data-step="4">
+      <fieldset class="field" style="border:0;margin:0;padding:0;min-width:0">
+        <legend class="step__title" style="padding:0;margin-bottom:8px">연락 가능 날짜</legend>
+        <p class="step__hint" id="hint-date">담당자가 평일에 연락드려요. 하루 전에 메일로 다시 알려 드려요.</p>
+        <div class="chip-scroll" role="radiogroup" aria-describedby="hint-date err-contact_date">
+          {% for d in date_choices %}
+          <label class="choice">
+            <input type="radio" name="contact_date" value="{{ d|date:'Y-m-d' }}" data-label="{{ d|kdate }}" {% if forloop.first %}aria-label="{{ d|date:'n월 j일' }} {{ d|kday }}요일 (가장 빠른 날)"{% else %}aria-label="{{ d|date:'n월 j일' }} {{ d|kday }}요일"{% endif %}>
+            <span>{% if forloop.first %}{{ d|date:"n/j" }}<small>{{ d|kday }} · 가장 빨라요</small>{% else %}{{ d|date:"n/j" }}<small>{{ d|kday }}요일</small>{% endif %}</span>
+          </label>
+          {% endfor %}
+          <label class="choice">
+            <input type="radio" name="contact_date" value="other" data-other-date aria-label="다른 날짜 고르기">
+            <span>다른 날<small>달력에서</small></span>
+          </label>
+        </div>
+        <div class="other-date" data-other-date-wrap hidden>
+          <label class="sr-only" for="f-other-date">다른 날짜</label>
+          <input class="input" type="date" id="f-other-date" min="{{ date_bounds.0|date:'Y-m-d' }}" max="{{ date_bounds.1|date:'Y-m-d' }}">
+        </div>
+        <p class="picked" data-picked hidden></p>
+        <p class="field__error" id="err-contact_date" data-error-for="contact_date"></p>
+      </fieldset>
+
+      <fieldset class="field" style="border:0;margin:20px 0 0;padding:0;min-width:0">
+        <legend class="step__title" style="padding:0;margin-bottom:8px">편한 시간대</legend>
+        <div class="choice-row">
+          {% for value, label in contact_times %}
+          <label class="choice choice--wide">
+            <input type="radio" name="contact_time" value="{{ value }}" {% if forloop.first %}checked{% endif %}>
+            <span>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <div class="consent" style="margin-top:24px">
+        <input type="checkbox" id="f-privacy" name="privacy_agreed" value="true" aria-describedby="err-privacy_agreed">
+        <label for="f-privacy">[필수] 개인정보 수집·이용 동의</label>
+        <button type="button" class="link-btn" data-open-sheet="privacy-sheet">보기</button>
+      </div>
+      <p class="field__error" id="err-privacy_agreed" data-error-for="privacy_agreed"></p>
+    </div>
+
+    <div class="honeypot" aria-hidden="true"><label>웹사이트 <input name="website" tabindex="-1" autocomplete="off"></label></div>
+
+    <div class="form__error" role="alert" data-form-error hidden></div>
+
+    <div class="bottom-cta">
+      <div class="bottom-cta__inner">
+        <button class="btn btn--primary btn--block btn--lg" type="submit" data-submit>
+          <span data-submit-label>다음</span>
+        </button>
+      </div>
+    </div>
+  </form>
+  {% endif %}
 </section>
+
+<dialog class="sheet" id="privacy-sheet" aria-labelledby="privacy-sheet-title">
+  <div class="sheet__head">
+    <h2 id="privacy-sheet-title">개인정보 수집·이용 동의</h2>
+    <button class="sheet__close" type="button" data-close-sheet aria-label="닫기">×</button>
+  </div>
+  <div class="sheet__body">
+    {% include "courses/_privacy_table.html" %}
+    <button type="button" class="btn btn--primary btn--block btn--lg" style="margin-top:16px" data-agree>동의하고 닫기</button>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="postcode-sheet" aria-labelledby="postcode-sheet-title">
+  <div class="sheet__head">
+    <h2 id="postcode-sheet-title">주소 찾기</h2>
+    <button class="sheet__close" type="button" data-close-sheet aria-label="닫기">×</button>
+  </div>
+  <div class="sheet__body">
+    <div class="postcode-frame" data-postcode-frame></div>
+    <p class="muted" style="font-size:13px;margin:10px 0 0" data-postcode-fallback hidden>주소 검색을 불러오지 못했어요. 주소 칸에 직접 적어 주세요.</p>
+  </div>
+</dialog>
 {% endblock %}
 {% block scripts %}<script src="{% static 'js/apply.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+{% block topbar_right %}
+<nav class="topbar__nav" aria-label="관리 메뉴">
+  <a href="{% url 'manage:list' %}">신청</a>
+  <a href="{% url 'manage:jobs' %}">배치</a>
+  <a href="{% url 'admin:index' %}">설정<span class="nav-long"> (admin)</span></a>
+  <form method="post" action="{% url 'admin:logout' %}">{% csrf_token %}<button type="submit" title="{{ request.user.username }}">로그아웃</button></form>
+</nav>
+{% endblock %}
+{% block content %}
+<section class="page page--wide">
+  {% block manage_content %}{% endblock %}
+</section>
+{% endblock %}
+{% block footer %}{% endblock %}
+{% block scripts %}<script src="{% static 'js/manage.js' %}" defer></script>{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static humanize_ko %}
+{% block title %}신청 완료 · 히어로스쿨{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block body_class %}has-bottom-cta narrow-page{% endblock %}
+{% block content %}
+<section class="page page--narrow">
+  <div class="done">
+    <div class="done__icon" aria-hidden="true">
+      <svg viewBox="0 0 48 48" width="64" height="64"><circle cx="24" cy="24" r="24" fill="var(--primary)"/><path d="M14 25l7 7 13-15" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h1 class="h1" tabindex="-1" data-autofocus>신청이 접수됐어요</h1>
+    <p class="lead"><strong>{{ a.contact_date|kdate }}</strong>{% if a.contact_time != "any" %} {{ a.get_contact_time_display }}{% endif %}에<br>담당자가 연락드릴게요.</p>
+
+    <dl class="receipt">
+      <div><dt>교육</dt><dd>{{ course.title }}</dd></div>
+      <div><dt>학생 이름</dt><dd>{{ a.name }}</dd></div>
+      <div><dt>안내 메일</dt><dd>{{ a.email|mask_email }}</dd></div>
+      <div><dt>신청번호</dt><dd>{{ a.reference }}</dd></div>
+    </dl>
+
+    <ol class="next-steps">
+      <li><b>1</b><span>접수 안내 메일을 보냈어요. 메일이 안 보이면 스팸함도 확인해 주세요.</span></li>
+      <li><b>2</b><span>연락 하루 전에 메일로 한 번 더 알려 드려요.</span></li>
+      <li><b>3</b><span>날짜를 바꾸거나 취소하려면 접수 메일에 답장해 주세요.</span></li>
+    </ol>
+  </div>
+
+  <div class="bottom-cta">
+    <div class="bottom-cta__inner">
+      <a class="btn btn--primary btn--block btn--lg" href="{% url 'courses:home' %}">확인</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>document.querySelector("[data-autofocus]")?.focus();</script>{% endblock %}

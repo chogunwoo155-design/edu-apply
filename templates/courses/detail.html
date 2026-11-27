@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static humanize_ko %}
 {% block title %}{{ course.title }} · 히어로스쿨{% endblock %}
+{% block description %}{{ course.tagline }}{% endblock %}
 {% block body_class %}has-bottom-cta{% endblock %}
 {% block content %}
 <article class="landing">
@@ -9,16 +10,17 @@
       <span class="chip">{{ course.get_category_display }}</span>
       <h1 class="h1">{{ course.title }}</h1>
       <p class="lead">{{ course.tagline }}</p>
+      <div class="key-facts" aria-label="핵심 정보">
+        <span class="chip chip--gray">{{ course.target }}</span>
+        <span class="chip chip--gray">{{ course.fee|won }}</span>
+        {% if course.apply_deadline %}<span class="chip chip--gray">{{ course.apply_deadline|date:"n월 j일" }} 마감{% if availability.open %} · {{ course.apply_deadline|dday }}{% endif %}</span>{% endif %}
+      </div>
       <div class="hero__cta">
-        {% if course.is_open %}
-        <a class="btn btn--primary btn--lg" href="{% url 'courses:apply' course.slug %}">신청하기</a>
-        {% else %}
-        <span class="btn btn--disabled btn--lg" aria-disabled="true">신청 마감</span>
-        {% endif %}
+        {% include "courses/_apply_button.html" %}
       </div>
     </div>
-    <div class="hero__art">
-      <img src="{% static course.cover_path %}" alt="{{ course.get_category_display }} 교육을 나타내는 도형 일러스트" width="480" height="480">
+    <div class="hero__art cover cover--{{ course.cover }}">
+      <img src="{% static course.cover_path %}" alt="" width="480" height="480">
     </div>
   </section>
 
@@ -27,9 +29,9 @@
       <div><dt>대상</dt><dd>{{ course.target }}</dd></div>
       <div><dt>운영</dt><dd>{{ course.schedule }}</dd></div>
       <div><dt>장소</dt><dd>{{ course.location }}</dd></div>
-      <div><dt>정원</dt><dd>{{ course.capacity }}명</dd></div>
+      {% if course.starts_on %}<div><dt>시작</dt><dd>{{ course.starts_on|kdate }}</dd></div>{% endif %}
+      <div><dt>정원</dt><dd>{{ course.capacity }}명{% if availability.open and availability.seats_left <= 5 %} <span class="badge badge--danger">{{ availability.seats_left }}자리 남음</span>{% endif %}</dd></div>
       <div><dt>참가비</dt><dd>{{ course.fee|won }}</dd></div>
-      {% if course.apply_deadline %}<div><dt>신청 마감</dt><dd>{{ course.apply_deadline|date:"n월 j일 (D)" }}</dd></div>{% endif %}
     </dl>
   </section>
 
@@ -43,7 +45,7 @@
     <ol class="timeline">
       {% for item in course.curriculum.all %}
       <li class="timeline__item">
-        <span class="timeline__num">{{ item.order }}</span>
+        <span class="timeline__num" aria-hidden="true">{{ item.order }}</span>
         <div>
           <strong>{{ item.title }}</strong>
           <p>{{ item.summary }}</p>
@@ -52,11 +54,30 @@
       {% endfor %}
     </ol>
   </section>
+
+  <section class="section faq">
+    <h2 class="h2 sr-only">자주 묻는 질문</h2>
+    <details>
+      <summary>신청하면 바로 확정되나요?</summary>
+      <p>신청서를 보내면 접수 메일이 가고, 고르신 날짜에 담당자가 연락드려 참여를 확정해요. 연락 하루 전에 메일로 한 번 더 알려 드려요.</p>
+    </details>
+    <details>
+      <summary>보호자가 대신 신청해도 되나요?</summary>
+      <p>네. 학생 이름을 적고, 연락받을 이메일은 보호자 이메일을 적어 주세요. 만 14세 미만 학생은 보호자가 신청해 주셔야 해요.</p>
+    </details>
+    <details>
+      <summary>날짜를 바꾸거나 취소하고 싶어요.</summary>
+      <p>접수 메일에 답장으로 알려 주시면 담당자가 바꿔 드려요.</p>
+    </details>
+  </section>
 </article>
 
-{% if course.is_open %}
-<div class="bottom-cta">
-  <a class="btn btn--primary btn--block btn--lg" href="{% url 'courses:apply' course.slug %}">신청하기</a>
+<div class="bottom-cta landing-cta">
+  <div class="bottom-cta__inner">
+    {% if availability.open %}
+    <p class="bottom-cta__note"><strong>{{ course.fee|won }}</strong>{% if course.apply_deadline %} · {{ course.apply_deadline|date:"n월 j일" }} 마감 ({{ course.apply_deadline|dday }}){% endif %}</p>
+    {% endif %}
+    {% include "courses/_apply_button.html" with block=True %}
+  </div>
 </div>
-{% endif %}
 {% endblock %}

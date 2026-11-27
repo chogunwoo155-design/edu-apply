@@ -1,28 +1,44 @@
 {% load static %}<!doctype html>
-<html lang="ko">
+<html lang="ko" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f1114" media="(prefers-color-scheme: dark)">
   <title>{% block title %}히어로스쿨{% endblock %}</title>
+  <meta name="description" content="{% block description %}청소년 교육 프로그램 소개와 신청{% endblock %}">
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script>document.documentElement.classList.replace("no-js", "js");</script>
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
-  <header class="topbar">
+  <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  <header class="topbar" data-topbar>
     <div class="topbar__inner">
       <a class="brand" href="{% url 'courses:home' %}" aria-label="히어로스쿨 홈">
-        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="var(--primary)"/><path d="M8 7v10M16 7v10M8 12h8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="6" fill="var(--primary)"/><path d="M8 7v10M16 7v10M8 12h8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
         <span>히어로스쿨</span>
       </a>
       {% block topbar_right %}{% endblock %}
     </div>
   </header>
-  <main id="main">
+  <main id="main" tabindex="-1">
     {% block content %}{% endblock %}
   </main>
+  {% block footer %}
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <span>히어로스쿨 교육 신청 (과제용 데모)</span>
+      <a href="{% url 'courses:privacy' %}">개인정보 처리방침</a>
+    </div>
+  </footer>
+  {% endblock %}
+  <div class="toast-stack" aria-live="polite" data-toasts></div>
+  <script src="{% static 'js/ui.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
