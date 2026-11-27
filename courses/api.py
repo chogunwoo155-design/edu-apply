@@ -7,7 +7,7 @@ from .serializers import CourseSerializer
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     """교육 목록·상세 (누구나 조회)."""
 
-    queryset = Course.objects.all()
+    queryset = Course.objects.prefetch_related("curriculum")
     serializer_class = CourseSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = "slug"

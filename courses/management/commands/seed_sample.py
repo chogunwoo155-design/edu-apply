@@ -1,8 +1,9 @@
 """
 샘플 교육 데이터를 넣는다. 교육 내용은 과제용 가상 데이터다.
 
-    python manage.py seed_sample              # 교육 3개
-    python manage.py seed_sample --demo-admin # + 로컬 확인용 관리자 계정
+    python manage.py seed_sample              # 없는 교육만 만든다 (관리자가 고친 내용은 건드리지 않음)
+    python manage.py seed_sample --reset      # 샘플 교육을 처음 상태로 덮어쓴다
+    python manage.py seed_sample --demo-admin # + 로컬 확인용 관리자 계정 (운영에서 쓰지 말 것)
 """
 
 from datetime import timedelta
@@ -93,22 +94,28 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--demo-admin", action="store_true", help="로컬 확인용 관리자 계정 생성")
+        parser.add_argument("--reset", action="store_true", help="이미 있는 샘플 교육도 덮어쓰기")
 
     @transaction.atomic
     def handle(self, *args, **options):
         today = timezone.localdate()
+        created_count = 0
         for i, data in enumerate(SAMPLES):
             data = dict(data)
             curriculum = data.pop("curriculum")
             data["starts_on"] = today + timedelta(days=21 + i * 7)
             data["apply_deadline"] = today + timedelta(days=14 + i * 7)
+            exists = Course.objects.filter(slug=data["slug"]).exists()
+            if exists and not options["reset"]:
+                continue
             course, _ = Course.objects.update_or_create(slug=data["slug"], defaults=data)
             course.curriculum.all().delete()
             CurriculumItem.objects.bulk_create(
                 CurriculumItem(course=course, order=n, title=t, summary=s)
                 for n, (t, s) in enumerate(curriculum, start=1)
             )
-        self.stdout.write(self.style.SUCCESS(f"교육 {len(SAMPLES)}개를 넣었습니다."))
+            created_count += 1
+        self.stdout.write(self.style.SUCCESS(f"샘플 교육 {created_count}개를 넣었습니다."))
 
         if options["demo_admin"]:
             User = get_user_model()

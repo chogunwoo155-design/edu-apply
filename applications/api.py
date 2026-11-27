@@ -1,44 +1,37 @@
-from django.conf import settings
-from django.core.mail import send_mail
 from rest_framework import permissions, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
-from .models import Application
+from . import selectors
 from .serializers import ApplicationCreateSerializer, ApplicationSerializer
 
 
 class ApplicationViewSet(viewsets.ModelViewSet):
     """
-    POST /api/applications/      누구나 신청
-    GET/PATCH/DELETE ...         관리자만
+    POST   /api/applications/             누구나 신청 (IP당 시간당 횟수 제한)
+    GET    /api/applications/?status=&course=&q=   관리자: 목록·검색
+    GET/PATCH/DELETE /api/applications/{id}/       관리자
+    GET    /api/applications/summary/     관리자: 상태별 건수
     """
 
-    queryset = Application.objects.all()
+    throttle_scope = "applications"
 
     def get_permissions(self):
         if self.action == "create":
             return [permissions.AllowAny()]
         return [permissions.IsAdminUser()]
 
+    def get_throttles(self):
+        return [ScopedRateThrottle()] if self.action == "create" else []
+
     def get_serializer_class(self):
-        if self.action == "create":
-            return ApplicationCreateSerializer
-        return ApplicationSerializer
+        return ApplicationCreateSerializer if self.action == "create" else ApplicationSerializer
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        status = self.request.query_params.get("status")
-        if status:
-            qs = qs.filter(status=status)
-        return qs
+        p = self.request.query_params
+        return selectors.application_list(status=p.get("status"), course=p.get("course"), q=p.get("q"))
 
-    def perform_create(self, serializer):
-        application = serializer.save()
-        send_mail(
-            subject=f"[히어로스쿨] {application.course.title} 신청이 접수되었습니다",
-            message=(
-                f"{application.name}님, 신청해 주셔서 감사합니다.\n"
-                f"연락 가능 날짜({application.contact_date:%Y-%m-%d})에 담당자가 연락드리겠습니다."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[application.email],
-        )
+    @action(detail=False)
+    def summary(self, request):
+        return Response(selectors.status_counts())

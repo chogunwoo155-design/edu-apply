@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8.3
+pytest-django>=4.9
+playwright>=1.49   # tools/ui_check.py (기기별 화면 점검)
