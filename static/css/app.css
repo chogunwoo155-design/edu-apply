@@ -115,6 +115,16 @@ button { cursor: pointer; }
 .skip-link:focus { top: 8px; }
 
 /* ---------- 상단 바 ---------- */
+.demo-band {
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .topbar {
   position: sticky; top: 0; z-index: 20;
   background: var(--bg-glass);

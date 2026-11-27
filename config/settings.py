@@ -66,6 +66,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "courses.context_processors.site",
             ],
         },
     },
@@ -128,6 +129,8 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 50,
     # 공개 신청 API: IP당 시간당 횟수 제한 (남의 주소로 메일 폭탄 방지)
     "DEFAULT_THROTTLE_RATES": {"applications": os.environ.get("APPLY_RATE_LIMIT", "10/hour")},
+    # 프록시(CloudFront·ALB) 뒤에서는 X-Forwarded-For로 사용자 IP를 본다. 없으면 REMOTE_ADDR
+    "NUM_PROXIES": int(os.environ["NUM_PROXIES"]) if os.environ.get("NUM_PROXIES") else None,
 }
 
 # 운영(DEBUG=0) 기본값은 SMTP. 콘솔 백엔드가 운영에 조용히 남아 개인정보가 로그로 새는 것을 막는다.
@@ -144,10 +147,14 @@ EMAIL_TIMEOUT = int(os.environ.get("EMAIL_TIMEOUT", "10"))
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "히어로스쿨 <no-reply@example.com>")
 STAFF_NOTIFY_EMAILS = env_list("STAFF_NOTIFY_EMAILS")
 
+# 공개 데모 서버: 모든 화면 위에 "실제 개인정보를 넣지 마세요" 띠를 띄운다
+DEMO_NOTICE = env_bool("DEMO_NOTICE", False)
+
 if not DEBUG:
     if EMAIL_BACKEND.endswith("smtp.EmailBackend") and not EMAIL_HOST:
         raise RuntimeError("운영에서는 EMAIL_HOST(예: SES SMTP 엔드포인트)가 필요합니다.")
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    # ALB는 X-Forwarded-Proto, CloudFront는 CloudFront-Forwarded-Proto 헤더로 https 여부를 알린다
+    SECURE_PROXY_SSL_HEADER = (os.environ.get("DJANGO_PROXY_SSL_HEADER", "HTTP_X_FORWARDED_PROTO"), "https")
     SECURE_SSL_REDIRECT = env_bool("DJANGO_SSL_REDIRECT", True)
     SECURE_REDIRECT_EXEMPT = [r"^healthz$"]  # ALB 헬스 체크는 HTTP로 들어온다
     SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "31536000"))

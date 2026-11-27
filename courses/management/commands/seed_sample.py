@@ -6,6 +6,7 @@
     python manage.py seed_sample --demo-admin # + 로컬 확인용 관리자 계정 (운영에서 쓰지 말 것)
 """
 
+import os
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
@@ -120,10 +121,13 @@ class Command(BaseCommand):
         if options["demo_admin"]:
             User = get_user_model()
             username, password = DEMO_ADMIN
+            # 공개 데모 서버는 비밀번호를 환경 변수로 받는다 (저장소에 적힌 값을 쓰지 않음)
+            env_password = os.environ.get("DEMO_ADMIN_PASSWORD")
             user, created = User.objects.get_or_create(
                 username=username, defaults={"is_staff": True, "is_superuser": True}
             )
-            if created:
-                user.set_password(password)
+            if created or env_password:
+                user.set_password(env_password or password)
                 user.save()
-            self.stdout.write(f"로컬 관리자 계정: {username} (비밀번호는 seed_sample.py의 DEMO_ADMIN)")
+            where = "DEMO_ADMIN_PASSWORD 환경 변수" if env_password else "seed_sample.py의 DEMO_ADMIN"
+            self.stdout.write(f"확인용 관리자 계정: {username} (비밀번호는 {where})")

@@ -17,6 +17,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#main">본문으로 건너뛰기</a>
+  {% if DEMO_NOTICE %}<p class="demo-band" role="note">과제 확인용 데모입니다. 실제 개인정보는 넣지 마세요.</p>{% endif %}
   <header class="topbar" data-topbar>
     <div class="topbar__inner">
       <a class="brand" href="{% url 'courses:home' %}" aria-label="히어로스쿨 홈">

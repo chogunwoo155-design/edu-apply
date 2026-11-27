@@ -8,3 +8,5 @@ var/
 credentials*.json
 *service-account*.json
 var_server.log
+
+deploy/aws/.build/
