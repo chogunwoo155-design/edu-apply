@@ -1,8 +1,0 @@
-[Unit]
-Description=edu-apply 일일 배치 (안내 메일·재시도·담당자 요약·시트 내보내기)
-After=docker.service
-Requires=docker.service
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/docker run --rm --env-file /etc/edu-apply.env --log-driver journald edu-apply:latest python manage.py run_daily_jobs
