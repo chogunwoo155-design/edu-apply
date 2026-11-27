@@ -1,5 +1,7 @@
 # 교육 신청 시스템
 
+[![CI](https://github.com/chogunwoo155-design/edu-apply/actions/workflows/ci.yml/badge.svg)](https://github.com/chogunwoo155-design/edu-apply/actions/workflows/ci.yml)
+
 교육 소개 → 신청 접수 → 신청 관리 흐름을 Django · PostgreSQL · DRF로 만들었습니다.
 샘플 교육 3개는 과제용 가상 데이터입니다.
 
