@@ -1,0 +1,7 @@
+{% extends "emails/_layout.html" %}
+{% load humanize_ko %}
+{% block body %}
+<h1 style="margin:0 0 8px;font-size:22px;line-height:1.4;">내일 담당자가 연락드려요</h1>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4e5561;">{{ a.name }}님이 신청하신 '{{ course.title }}' 안내를 위해<br><strong style="color:#191c21;">{{ a.contact_date|kdate }}{% if a.contact_time != "any" %} {{ a.get_contact_time_display }}{% endif %}</strong>에 연락드릴 예정이에요.</p>
+<p style="margin:0;font-size:13px;color:#8b929c;">신청번호 {{ a.reference }}</p>
+{% endblock %}

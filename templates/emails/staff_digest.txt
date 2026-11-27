@@ -1,0 +1,11 @@
+{% load humanize_ko %}{{ date|date:"Y년" }} {{ date|kdate }} 신청 관리 요약
+
+■ 오늘 연락할 신청자 {{ today_contacts|length }}명
+{% for a in today_contacts %}- {{ a.reference }} {{ a.name }} · {{ a.course.title }} · {{ a.get_contact_time_display }} · {{ a.get_status_display }}
+{% empty %}- 없음
+{% endfor %}
+■ '접수' 상태로 {{ stale_days }}일 이상 지난 신청 {{ stale|length }}건 (확인 필요)
+{% for a in stale %}- {{ a.reference }} {{ a.name }} · {{ a.course.title }} · {{ a.created_at|date:"n/j" }} 접수
+{% empty %}- 없음
+{% endfor %}
+관리 화면에서 처리해 주세요.

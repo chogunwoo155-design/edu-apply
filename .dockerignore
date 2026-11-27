@@ -1,0 +1,9 @@
+.venv
+.git
+.env
+var
+staticfiles
+docs/screenshots
+docs/review/scratch
+**/__pycache__
+.pytest_cache

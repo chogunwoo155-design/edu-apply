@@ -1,0 +1,8 @@
+{% load humanize_ko %}{{ a.name }}님, 안녕하세요.
+
+신청하신 '{{ course.title }}' 안내를 위해
+내일({{ a.contact_date|kdate }}{% if a.contact_time != "any" %} · {{ a.get_contact_time_display }}{% endif %}) 담당자가 연락드릴 예정이에요.
+
+신청번호: {{ a.reference }}
+
+히어로스쿨

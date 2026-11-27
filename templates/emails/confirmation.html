@@ -1,0 +1,11 @@
+{% extends "emails/_layout.html" %}
+{% load humanize_ko %}
+{% block body %}
+<h1 style="margin:0 0 8px;font-size:22px;line-height:1.4;">신청이 접수됐어요</h1>
+<p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4e5561;">{{ a.name }}님, 연락 가능 날짜에 담당자가 연락드릴게요.<br>하루 전에 한 번 더 알려 드려요.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;border-radius:14px;font-size:14px;">
+<tr><td style="padding:14px 16px 4px;color:#8b929c;">교육</td><td style="padding:14px 16px 4px;text-align:right;font-weight:600;">{{ course.title }}</td></tr>
+<tr><td style="padding:4px 16px;color:#8b929c;">연락 가능 날짜</td><td style="padding:4px 16px;text-align:right;font-weight:600;">{{ a.contact_date|kdate }}{% if a.contact_time != "any" %} · {{ a.get_contact_time_display }}{% endif %}</td></tr>
+<tr><td style="padding:4px 16px 14px;color:#8b929c;">신청번호</td><td style="padding:4px 16px 14px;text-align:right;font-weight:600;">{{ a.reference }}</td></tr>
+</table>
+{% endblock %}

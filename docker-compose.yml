@@ -1,0 +1,44 @@
+# 로컬 확인용 구성 (운영용 아님: DEBUG=1, 콘솔 메일). 운영 구성은 docs/DEPLOY_AWS.md
+#   docker compose up --build
+#   docker compose run --rm web python manage.py seed_sample --demo-admin   # 확인용 관리자 계정이 필요할 때만
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: edu_apply
+      POSTGRES_USER: edu
+      POSTGRES_PASSWORD: edu-local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edu -d edu_apply"]
+      interval: 3s
+      retries: 20
+
+  web:
+    build: .
+    environment: &app-env
+      DJANGO_DEBUG: "1"
+      DJANGO_SECRET_KEY: compose-local-only
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgres://edu:edu-local@db:5432/edu_apply
+      EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+    command: sh -c "python manage.py migrate && python manage.py seed_sample && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # 운영에서는 EventBridge Scheduler가 같은 이미지로 이 명령을 매일 실행한다 (docs/DEPLOY_AWS.md)
+  batch:
+    build: .
+    environment: *app-env
+    command: python manage.py run_daily_jobs
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: ["batch"]
+
+volumes:
+  pgdata:
