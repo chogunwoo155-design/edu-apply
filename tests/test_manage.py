@@ -70,3 +70,24 @@ def test_rules_use_korean_today_not_utc(monkeypatch):
     assert rules.today().isoformat() == "2026-12-01"
     first, _ = rules.contact_date_bounds()
     assert first.isoformat() == "2026-12-02"
+
+
+def test_manage_list_query_count_does_not_grow_with_rows(client, staff_user, courses):
+    """1차: 20행 → 쿼리 23개(행마다 교육 조회). 2차: 행 수와 상관없이 일정."""
+    from django.db import connection
+    from django.test.utils import CaptureQueriesContext
+
+    course = courses.get(slug="digital-literacy")
+    client.force_login(staff_user)
+
+    def count(n_rows):
+        for i in range(n_rows - Application.objects.count()):
+            services.submit_application(course.pk, services.ApplicantInput(
+                name=f"행{i}", email=f"q{i}-{n_rows}@example.com", address="서울 영등포구 1", contact_date=next_contact_day(2)))
+        with CaptureQueriesContext(connection) as ctx:
+            assert client.get("/manage/").status_code == 200
+        return len(ctx)
+
+    few, many = count(3), count(25)
+    print("manage queries:", few, many)
+    assert few == many
