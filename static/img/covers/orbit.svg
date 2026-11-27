@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="궤도를 도는 도형 일러스트">
+  <defs>
+    <linearGradient id="o-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef3ff"/>
+      <stop offset="1" stop-color="#dfe8ff"/>
+    </linearGradient>
+    <linearGradient id="o-core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b8cff"/>
+      <stop offset="1" stop-color="#2f6bff"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="480" fill="url(#o-bg)"/>
+  <g fill="none" stroke="#2f6bff" stroke-opacity=".18" stroke-width="2">
+    <ellipse cx="240" cy="240" rx="190" ry="78" transform="rotate(-24 240 240)"/>
+    <ellipse cx="240" cy="240" rx="190" ry="78" transform="rotate(36 240 240)"/>
+    <circle cx="240" cy="240" r="150"/>
+  </g>
+  <circle cx="240" cy="240" r="72" fill="url(#o-core)"/>
+  <circle cx="218" cy="216" r="18" fill="#fff" fill-opacity=".35"/>
+  <circle cx="84" cy="164" r="16" fill="#ffb020"/>
+  <circle cx="392" cy="318" r="22" fill="#12b886"/>
+  <rect x="352" y="118" width="30" height="30" rx="8" fill="#ff6b6b" transform="rotate(18 367 133)"/>
+  <circle cx="150" cy="368" r="10" fill="#2f6bff"/>
+</svg>

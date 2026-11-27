@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static humanize_ko %}
+{% block title %}{{ course.title }} · 히어로스쿨{% endblock %}
+{% block body_class %}has-bottom-cta{% endblock %}
+{% block content %}
+<article class="landing">
+  <section class="hero">
+    <div class="hero__text">
+      <span class="chip">{{ course.get_category_display }}</span>
+      <h1 class="h1">{{ course.title }}</h1>
+      <p class="lead">{{ course.tagline }}</p>
+      <div class="hero__cta">
+        {% if course.is_open %}
+        <a class="btn btn--primary btn--lg" href="{% url 'courses:apply' course.slug %}">신청하기</a>
+        {% else %}
+        <span class="btn btn--disabled btn--lg" aria-disabled="true">신청 마감</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="hero__art">
+      <img src="{% static course.cover_path %}" alt="{{ course.get_category_display }} 교육을 나타내는 도형 일러스트" width="480" height="480">
+    </div>
+  </section>
+
+  <section class="facts" aria-label="교육 정보">
+    <dl class="facts__grid">
+      <div><dt>대상</dt><dd>{{ course.target }}</dd></div>
+      <div><dt>운영</dt><dd>{{ course.schedule }}</dd></div>
+      <div><dt>장소</dt><dd>{{ course.location }}</dd></div>
+      <div><dt>정원</dt><dd>{{ course.capacity }}명</dd></div>
+      <div><dt>참가비</dt><dd>{{ course.fee|won }}</dd></div>
+      {% if course.apply_deadline %}<div><dt>신청 마감</dt><dd>{{ course.apply_deadline|date:"n월 j일 (D)" }}</dd></div>{% endif %}
+    </dl>
+  </section>
+
+  <section class="section">
+    <h2 class="h2">이런 교육이에요</h2>
+    <p class="body">{{ course.description }}</p>
+  </section>
+
+  <section class="section">
+    <h2 class="h2">커리큘럼</h2>
+    <ol class="timeline">
+      {% for item in course.curriculum.all %}
+      <li class="timeline__item">
+        <span class="timeline__num">{{ item.order }}</span>
+        <div>
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.summary }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+</article>
+
+{% if course.is_open %}
+<div class="bottom-cta">
+  <a class="btn btn--primary btn--block btn--lg" href="{% url 'courses:apply' course.slug %}">신청하기</a>
+</div>
+{% endif %}
+{% endblock %}

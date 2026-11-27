@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+staticfiles/
+var/
+.pytest_cache/
+credentials*.json
+*service-account*.json
+var_server.log

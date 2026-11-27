@@ -1,0 +1,13 @@
+Django>=5.2,<6
+djangorestframework>=3.16
+psycopg[binary]>=3.2
+dj-database-url>=2.2
+python-dotenv>=1.0
+gspread>=6.1
+google-auth>=2.30
+gunicorn>=23.0
+whitenoise>=6.7
+
+# 개발·테스트
+pytest>=8.3
+pytest-django>=4.9

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static humanize_ko %}
+{% block title %}교육 프로그램 · 히어로스쿨{% endblock %}
+{% block content %}
+<section class="page page--narrow">
+  <header class="page-head">
+    <p class="eyebrow">모집 중인 교육</p>
+    <h1 class="h1">스스로 생각하고<br>행동하는 경험을 만나요</h1>
+  </header>
+
+  <ul class="course-list">
+    {% for course in courses %}
+    <li>
+      <a class="course-card" href="{{ course.get_absolute_url }}">
+        <img class="course-card__cover" src="{% static course.cover_path %}" alt="" width="120" height="120">
+        <div class="course-card__body">
+          <span class="chip">{{ course.get_category_display }}</span>
+          <strong class="course-card__title">{{ course.title }}</strong>
+          <span class="course-card__meta">{{ course.target }} · {{ course.schedule }}</span>
+        </div>
+        {% if not course.is_open %}<span class="badge badge--muted">마감</span>{% endif %}
+      </a>
+    </li>
+    {% empty %}
+    <li class="empty">아직 등록된 교육이 없어요.</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

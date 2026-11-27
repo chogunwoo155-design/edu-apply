@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}신청 관리 · 히어로스쿨{% endblock %}
+{% block topbar_right %}<a class="topbar__link" href="{% url 'admin:index' %}">Django admin</a>{% endblock %}
+{% block content %}
+<section class="page page--wide">
+  <header class="page-head">
+    <h1 class="h1">신청 관리</h1>
+  </header>
+
+  <nav class="tabs" aria-label="상태 필터">
+    <a class="tabs__item {% if not current_status %}is-active{% endif %}" href="?">전체</a>
+    {% for value, label in statuses %}
+    <a class="tabs__item {% if current_status == value %}is-active{% endif %}" href="?status={{ value }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>신청일</th><th>이름</th><th>교육</th><th>이메일</th><th>연락 가능일</th><th>상태</th></tr>
+      </thead>
+      <tbody>
+        {% for a in applications %}
+        <tr>
+          <td>{{ a.created_at|date:"m.d H:i" }}</td>
+          <td>{{ a.name }}</td>
+          <td>{{ a.course.title }}</td>
+          <td>{{ a.email }}</td>
+          <td>{{ a.contact_date|date:"m.d (D)" }}</td>
+          <td>
+            <form method="post" action="{% url 'manage:change_status' a.pk %}" class="inline-form">
+              {% csrf_token %}
+              <select name="status" onchange="this.form.submit()">
+                {% for value, label in statuses %}
+                <option value="{{ value }}" {% if a.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty">신청이 없어요.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
