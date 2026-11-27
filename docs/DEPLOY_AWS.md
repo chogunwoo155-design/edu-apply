@@ -1,6 +1,7 @@
 # AWS 배포 계획
 
 > 이 문서는 계획입니다. 이 과제에서는 실제 AWS에 배포하지 않았습니다.
+> 확인용 데모는 Render 무료 플랜에 올렸습니다: https://edu-apply.onrender.com (`render.yaml`)
 > 대신 운영과 같은 구성을 로컬에서 재현할 수 있도록 `Dockerfile` · `docker-compose.yml`을 넣었습니다.
 > 이미지 빌드와 PostgreSQL 위 테스트는 GitHub Actions(`.github/workflows/ci.yml`)가 매 push마다 확인합니다.
 
