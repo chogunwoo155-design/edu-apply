@@ -15,7 +15,7 @@
 | 신청 관리 (로그인 필요) | https://edu-apply.onrender.com/manage/ — 계정 `demo`, 비밀번호는 회신 메일에 적었습니다 |
 | API | https://edu-apply.onrender.com/api/courses/ |
 
-- Render 무료 플랜(싱가포르)에 [`render.yaml`](render.yaml) 하나로 웹과 PostgreSQL 17을 올렸습니다. `main`에 push하면 다시 배포됩니다.
+- Render 무료 플랜(싱가포르)에 [`render.yaml`](render.yaml) 하나로 웹과 PostgreSQL 17을 올렸습니다. 코드를 고친 뒤에는 Render 대시보드의 Manual Deploy로 다시 배포합니다.
 - 15분 동안 접속이 없으면 서버가 잠듭니다. **잠든 뒤 첫 접속은 30초~1분** 걸리고, 그다음부터는 바로 열립니다.
 - 데모에는 메일 서버를 붙이지 않았습니다. 발송 기록은 Django admin(`/admin/` → 발송 기록)에, 메일 본문은 서버 로그에 남습니다.
 - 무료 플랜에는 예약 작업이 없어서, 서버가 깰 때마다 일일 배치를 한 번 돌립니다([`deploy/render_start.sh`](deploy/render_start.sh)). 배치가 멱등이라 여러 번 돌아도 같은 안내를 두 번 보내지 않습니다. 운영 구성(AWS)은 [`docs/DEPLOY_AWS.md`](docs/DEPLOY_AWS.md)에 있습니다.

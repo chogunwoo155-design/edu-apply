@@ -1,5 +1,6 @@
 # 과제 확인용 데모 배포 (Render 무료 플랜). 운영 목표 구성은 docs/DEPLOY_AWS.md
-# Render 대시보드 → New → Blueprint → 이 저장소를 고르면 웹과 DB를 같이 만든다. main에 push하면 다시 배포된다.
+# Render 대시보드 → New → Blueprint → 이 저장소를 고르면 웹과 DB를 같이 만든다.
+# 자동 배포는 Render GitHub 앱을 저장소에 설치해야 켜진다. 지금은 대시보드의 Manual Deploy로 배포한다.
 services:
   - type: web
     name: edu-apply
